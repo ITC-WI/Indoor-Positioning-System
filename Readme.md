@@ -4,7 +4,8 @@ For every push being made to the github repo in any branch the history
 should be updated accordingly. Newer commits should come to the top.
 
 ## *NativeFramework initialised*
-
+- Beacon handling functions(discovered,updated and lost) are declared. To be implemented.
+- start_filtering() and initialise_scan() are declared. To be implemented.
 ## Basic Scanning is set
 1. Updates
    - start_scanning() and stop_scanning() are completely functional.

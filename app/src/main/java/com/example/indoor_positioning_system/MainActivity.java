@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         scanButton = findViewById(R.id.scanButton);
         setupButtons();
 
-        //Native initialise_scan()
+        initialise_scan();
         //This would handle initialising the filters in native code.
     }
 
@@ -172,19 +172,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onIBeaconDiscovered(IBeaconDevice iBeacon, IBeaconRegion region) {
                 Log.i("IBeaconDiscovered",iBeacon.toString());
-                //Native onIBeaconDiscovered();
+                IBeaconDiscovered(iBeacon,region);
             }
 
             @Override
             public void onIBeaconsUpdated(List<IBeaconDevice> iBeacons, IBeaconRegion region) {
                 Log.i("IBeaconUpdated", String.valueOf(iBeacons.size()));
-                //Native onIBeaconUpdated();
+                IBeaconUpdated(iBeacons,region);
             }
 
             @Override
             public void onIBeaconLost(IBeaconDevice iBeacon, IBeaconRegion region) {
                 Log.i("IBeaconLost",iBeacon.toString());
-                //Native onIBeaconLost();
+                IBeaconLost(iBeacon,region);
             }
         };
     }
@@ -254,9 +254,10 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "Scanning started", Toast.LENGTH_SHORT).show();
             progressBar.setVisibility(View.VISIBLE);
         });
-        //on a new thread from here: Native start_scanning();
         //This should be called periodically at regular intervals.
         //Java handler would handle the call at periodic intervals.
+        //TODO: add the thread handler here.
+        start_filtering();
     }
 
     /**
@@ -295,4 +296,29 @@ public class MainActivity extends AppCompatActivity {
      * which is packaged with this application.
      */
     public native String stringFromJNI();
+
+    /**
+     * To initialise the filters and anything that needs to be run before actually starting filtering.
+     */
+    public native void initialise_scan();
+
+    /**
+     * To repeatedly estimate position of the user. This would handle all the filtering calls.
+     */
+    public native void start_filtering();
+
+    /**
+     * Called on new IBeacon discovery.
+     */
+    public native void IBeaconDiscovered(IBeaconDevice iBeacon, IBeaconRegion region);
+
+    /**
+     * Called on IBeacon update.
+     */
+    public native void IBeaconUpdated(List<IBeaconDevice> iBeacons,IBeaconRegion region);
+
+    /**
+     * Called when an IBeacon is lost.
+     */
+    public native void IBeaconLost(IBeaconDevice iBeacon, IBeaconRegion region);
 }
