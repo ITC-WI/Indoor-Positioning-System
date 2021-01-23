@@ -77,8 +77,9 @@ public class MainActivity extends AppCompatActivity {
         scanButton = findViewById(R.id.scanButton);
         setupButtons();
 
-        //initialise_scan();
         //This would handle initialising the filters in native code.
+        initialise_scan();
+
     }
 
     /**
@@ -105,15 +106,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Called at each button press if permission_status is false.
+     * Called at each button press to check whether the required services(Location and BLE)
+     * are running and also the permissions(FINE_LOCATION) are accepted.
      * Do not call it from anywhere else!!
      * This function checks whether the required permissions have been granted.
      * If the permissions are not granted, ask for them.
      * If the permissions are granted then return true otherwise false.
      */
     public void checkPermissions(){
+
         //For testing only:
         Log.i("INFO","Checking for permissions");
+
+        //Check for FINE_LOCATION Permission.
         int checkSelfPermissionResult = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
         if(PackageManager.PERMISSION_GRANTED==checkSelfPermissionResult){
             permission_status =true;
@@ -129,6 +134,9 @@ public class MainActivity extends AppCompatActivity {
             //handled there.
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_PERMISSIONS);
         }
+
+        //Now check whether location is enabled.
+
     }
 
     @Override
@@ -172,19 +180,28 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onIBeaconDiscovered(IBeaconDevice iBeacon, IBeaconRegion region) {
                 Log.i("IBeaconDiscovered",iBeacon.toString());
-                //IBeaconDiscovered(iBeacon,region);
+                IBeaconDiscovered(iBeacon.getMajor(),iBeacon.getMinor(),iBeacon.getRssi());
             }
 
             @Override
             public void onIBeaconsUpdated(List<IBeaconDevice> iBeacons, IBeaconRegion region) {
                 Log.i("IBeaconUpdated", String.valueOf(iBeacons.size()));
-                //IBeaconUpdated(iBeacons,region);
+                int i=0;
+                int[] majors = new int[iBeacons.size()];
+                int[] minors = new int[iBeacons.size()];
+                int[] rssis = new int[iBeacons.size()];
+                for (IBeaconDevice iBeacon :iBeacons) {
+                    majors[i] = iBeacon.getMajor();
+                    minors[i] = iBeacon.getMinor();
+                    rssis[i] = iBeacon.getRssi();
+                }
+                IBeaconUpdated(majors, minors, rssis);
             }
 
             @Override
             public void onIBeaconLost(IBeaconDevice iBeacon, IBeaconRegion region) {
                 Log.i("IBeaconLost",iBeacon.toString());
-                //IBeaconLost(iBeacon,region);
+                IBeaconLost(iBeacon.getMajor(),iBeacon.getMinor(),iBeacon.getRssi());
             }
         };
     }
@@ -257,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
         //This should be called periodically at regular intervals.
         //Java handler would handle the call at periodic intervals.
         //TODO: add the thread handler here.
-        //start_filtering();
+        start_filtering();
     }
 
     /**
@@ -317,15 +334,15 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Called on new IBeacon discovery.
      */
-    public native void IBeaconDiscovered(IBeaconDevice iBeacon, IBeaconRegion region);
+    public native void IBeaconDiscovered(int major, int minor, int rssi);
 
     /**
      * Called on IBeacon update.
      */
-    public native void IBeaconUpdated(List<IBeaconDevice> iBeacons,IBeaconRegion region);
+    public native void IBeaconUpdated(int[] majors, int[] minors, int[] rssis);
 
     /**
      * Called when an IBeacon is lost.
      */
-    public native void IBeaconLost(IBeaconDevice iBeacon, IBeaconRegion region);
+    public native void IBeaconLost(int major, int minor, int rssi);
 }

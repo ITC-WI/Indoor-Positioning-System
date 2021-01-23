@@ -31,36 +31,26 @@ Java_com_example_indoor_1positioning_1system_MainActivity_start_1filtering(JNIEn
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_stop_1filtering(JNIEnv *env,
-                                                                          jobject thiz) {
+Java_com_example_indoor_1positioning_1system_MainActivity_stop_1filtering(JNIEnv *env, jobject thiz) {
     // TODO: implement stop_filtering()
     LOGI("filtering stopped");
 }
 
+
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconDiscovered(JNIEnv *env,
-                                                                            jobject thiz,
-                                                                            jobject i_beacon,
-                                                                            jobject region) {
+Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconDiscovered(JNIEnv *env, jobject thiz, jint major, jint minor, jint rssi) {
     // TODO: implement IBeaconDiscovered()
-    //LOGI("IBeacon Discovered:",i_beacon);
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconUpdated(JNIEnv *env, jobject thiz,
-                                                                         jobject i_beacons,
-                                                                         jobject region) {
+Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconUpdated(JNIEnv *env, jobject thiz, jintArray majors, jintArray minors, jintArray rssis) {
     // TODO: implement IBeaconUpdated()
-
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconLost(JNIEnv *env, jobject thiz,
-                                                                      jobject i_beacon,
-                                                                      jobject region) {
+Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconLost(JNIEnv *env, jobject thiz, jint major, jint minor, jint rssi) {
     // TODO: implement IBeaconLost()
 }
-
