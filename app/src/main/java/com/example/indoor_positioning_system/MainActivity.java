@@ -28,6 +28,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+
     TextView cppv;
     Button scanButton;
     ProgressBar progressBar;
@@ -48,6 +49,15 @@ public class MainActivity extends AppCompatActivity {
     static {
         System.loadLibrary("native-lib");
     }
+    // Used to load the 'beacon' library on application startup.
+    static {
+        System.loadLibrary("beacon");
+    }
+    // Used to load the 'trilateration' library on application startup.
+    static {
+        System.loadLibrary("trilateration");
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
