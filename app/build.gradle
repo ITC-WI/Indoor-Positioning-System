@@ -44,8 +44,9 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    //TODO: Change the foolowing to appropriate version without using +.
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-    implementation 'com.kontaktio:sdk:5.0.0'        //kontact.io android SDK
+    implementation 'com.kontaktio:sdk:5.0.2'        //kontact.io android SDK
 }
