@@ -3,6 +3,8 @@ Commit History
 For every push being made to the github repo in any branch the history
 should be updated accordingly. Newer commits should come to the top.
 
+## *NativeFramework initialised*
+
 ## Basic Scanning is set
 1. Updates
    - start_scanning() and stop_scanning() are completely functional.

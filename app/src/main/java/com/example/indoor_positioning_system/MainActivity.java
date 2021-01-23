@@ -76,6 +76,9 @@ public class MainActivity extends AppCompatActivity {
         //Setup the scan button
         scanButton = findViewById(R.id.scanButton);
         setupButtons();
+
+        //Native initialise_scan()
+        //This would handle initialising the filters in native code.
     }
 
     /**
@@ -169,16 +172,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onIBeaconDiscovered(IBeaconDevice iBeacon, IBeaconRegion region) {
                 Log.i("IBeaconDiscovered",iBeacon.toString());
+                //Native onIBeaconDiscovered();
             }
 
             @Override
             public void onIBeaconsUpdated(List<IBeaconDevice> iBeacons, IBeaconRegion region) {
                 Log.i("IBeaconUpdated", String.valueOf(iBeacons.size()));
+                //Native onIBeaconUpdated();
             }
 
             @Override
             public void onIBeaconLost(IBeaconDevice iBeacon, IBeaconRegion region) {
                 Log.i("IBeaconLost",iBeacon.toString());
+                //Native onIBeaconLost();
             }
         };
     }
@@ -248,6 +254,9 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "Scanning started", Toast.LENGTH_SHORT).show();
             progressBar.setVisibility(View.VISIBLE);
         });
+        //on a new thread from here: Native start_scanning();
+        //This should be called periodically at regular intervals.
+        //Java handler would handle the call at periodic intervals.
     }
 
     /**
