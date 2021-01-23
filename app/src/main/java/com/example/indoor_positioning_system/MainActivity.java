@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         scanButton = findViewById(R.id.scanButton);
         setupButtons();
 
-        initialise_scan();
+        //initialise_scan();
         //This would handle initialising the filters in native code.
     }
 
@@ -172,19 +172,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onIBeaconDiscovered(IBeaconDevice iBeacon, IBeaconRegion region) {
                 Log.i("IBeaconDiscovered",iBeacon.toString());
-                IBeaconDiscovered(iBeacon,region);
+                //IBeaconDiscovered(iBeacon,region);
             }
 
             @Override
             public void onIBeaconsUpdated(List<IBeaconDevice> iBeacons, IBeaconRegion region) {
                 Log.i("IBeaconUpdated", String.valueOf(iBeacons.size()));
-                IBeaconUpdated(iBeacons,region);
+                //IBeaconUpdated(iBeacons,region);
             }
 
             @Override
             public void onIBeaconLost(IBeaconDevice iBeacon, IBeaconRegion region) {
                 Log.i("IBeaconLost",iBeacon.toString());
-                IBeaconLost(iBeacon,region);
+                //IBeaconLost(iBeacon,region);
             }
         };
     }
@@ -246,10 +246,10 @@ public class MainActivity extends AppCompatActivity {
         //Anonymous listener.
         proximityManager.connect(() -> {
             //Check if proximity manager is already scanning. This check is superfluous.
-            if (proximityManager.isScanning()) {
-                Toast.makeText(MainActivity.this, "Already scanning", Toast.LENGTH_SHORT).show();
-                return;
-            }
+//            if (proximityManager.isScanning()) {
+//                Toast.makeText(MainActivity.this, "Already scanning", Toast.LENGTH_SHORT).show();
+//                return;
+//            }
             proximityManager.startScanning();
             Toast.makeText(MainActivity.this, "Scanning started", Toast.LENGTH_SHORT).show();
             progressBar.setVisibility(View.VISIBLE);
@@ -257,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
         //This should be called periodically at regular intervals.
         //Java handler would handle the call at periodic intervals.
         //TODO: add the thread handler here.
-        start_filtering();
+        //start_filtering();
     }
 
     /**
@@ -269,6 +269,8 @@ public class MainActivity extends AppCompatActivity {
         Log.i("INFO","Stopping Scan");
 
         progressBar.setVisibility(View.GONE);
+        //TODO: Handled via a thread handler.
+        stop_filtering();
 
         //Stop scanning if scanning is in progress. This check is superfluous.
         if (proximityManager.isScanning()) {
@@ -306,6 +308,11 @@ public class MainActivity extends AppCompatActivity {
      * To repeatedly estimate position of the user. This would handle all the filtering calls.
      */
     public native void start_filtering();
+
+    /**
+     * To safely exit from filtering.
+     */
+    public native void stop_filtering();
 
     /**
      * Called on new IBeacon discovery.
