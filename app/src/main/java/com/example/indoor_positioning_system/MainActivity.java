@@ -76,6 +76,10 @@ public class MainActivity extends AppCompatActivity {
         //Setup the scan button
         scanButton = findViewById(R.id.scanButton);
         setupButtons();
+
+        //This would handle initialising the filters in native code.
+        initialise_scan();
+
     }
 
     /**
@@ -102,15 +106,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Called at each button press if permission_status is false.
+     * Called at each button press to check whether the required services(Location and BLE)
+     * are running and also the permissions(FINE_LOCATION) are accepted.
      * Do not call it from anywhere else!!
      * This function checks whether the required permissions have been granted.
      * If the permissions are not granted, ask for them.
      * If the permissions are granted then return true otherwise false.
      */
     public void checkPermissions(){
+
         //For testing only:
         Log.i("INFO","Checking for permissions");
+
+        //Check for FINE_LOCATION Permission.
         int checkSelfPermissionResult = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
         if(PackageManager.PERMISSION_GRANTED==checkSelfPermissionResult){
             permission_status =true;
@@ -126,6 +134,9 @@ public class MainActivity extends AppCompatActivity {
             //handled there.
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_PERMISSIONS);
         }
+
+        //Now check whether location is enabled.
+
     }
 
     @Override
@@ -169,16 +180,28 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onIBeaconDiscovered(IBeaconDevice iBeacon, IBeaconRegion region) {
                 Log.i("IBeaconDiscovered",iBeacon.toString());
+                IBeaconDiscovered(iBeacon.getMajor(),iBeacon.getMinor(),iBeacon.getRssi());
             }
 
             @Override
             public void onIBeaconsUpdated(List<IBeaconDevice> iBeacons, IBeaconRegion region) {
                 Log.i("IBeaconUpdated", String.valueOf(iBeacons.size()));
+                int i=0;
+                int[] majors = new int[iBeacons.size()];
+                int[] minors = new int[iBeacons.size()];
+                int[] rssis = new int[iBeacons.size()];
+                for (IBeaconDevice iBeacon :iBeacons) {
+                    majors[i] = iBeacon.getMajor();
+                    minors[i] = iBeacon.getMinor();
+                    rssis[i] = iBeacon.getRssi();
+                }
+                IBeaconUpdated(majors, minors, rssis);
             }
 
             @Override
             public void onIBeaconLost(IBeaconDevice iBeacon, IBeaconRegion region) {
                 Log.i("IBeaconLost",iBeacon.toString());
+                IBeaconLost(iBeacon.getMajor(),iBeacon.getMinor(),iBeacon.getRssi());
             }
         };
     }
@@ -240,14 +263,18 @@ public class MainActivity extends AppCompatActivity {
         //Anonymous listener.
         proximityManager.connect(() -> {
             //Check if proximity manager is already scanning. This check is superfluous.
-            if (proximityManager.isScanning()) {
-                Toast.makeText(MainActivity.this, "Already scanning", Toast.LENGTH_SHORT).show();
-                return;
-            }
+//            if (proximityManager.isScanning()) {
+//                Toast.makeText(MainActivity.this, "Already scanning", Toast.LENGTH_SHORT).show();
+//                return;
+//            }
             proximityManager.startScanning();
             Toast.makeText(MainActivity.this, "Scanning started", Toast.LENGTH_SHORT).show();
             progressBar.setVisibility(View.VISIBLE);
         });
+        //This should be called periodically at regular intervals.
+        //Java handler would handle the call at periodic intervals.
+        //TODO: add the thread handler here.
+        start_filtering();
     }
 
     /**
@@ -259,6 +286,8 @@ public class MainActivity extends AppCompatActivity {
         Log.i("INFO","Stopping Scan");
 
         progressBar.setVisibility(View.GONE);
+        //TODO: Handled via a thread handler.
+        stop_filtering();
 
         //Stop scanning if scanning is in progress. This check is superfluous.
         if (proximityManager.isScanning()) {
@@ -286,4 +315,34 @@ public class MainActivity extends AppCompatActivity {
      * which is packaged with this application.
      */
     public native String stringFromJNI();
+
+    /**
+     * To initialise the filters and anything that needs to be run before actually starting filtering.
+     */
+    public native void initialise_scan();
+
+    /**
+     * To repeatedly estimate position of the user. This would handle all the filtering calls.
+     */
+    public native void start_filtering();
+
+    /**
+     * To safely exit from filtering.
+     */
+    public native void stop_filtering();
+
+    /**
+     * Called on new IBeacon discovery.
+     */
+    public native void IBeaconDiscovered(int major, int minor, int rssi);
+
+    /**
+     * Called on IBeacon update.
+     */
+    public native void IBeaconUpdated(int[] majors, int[] minors, int[] rssis);
+
+    /**
+     * Called when an IBeacon is lost.
+     */
+    public native void IBeaconLost(int major, int minor, int rssi);
 }
