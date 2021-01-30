@@ -3,6 +3,23 @@ Commit History
 For every push being made to the github repo in any branch the history
 should be updated accordingly. Newer commits should come to the top.
 
+## Chain of responsibility first design ready
+1. Updates:
+   - Chain of responsibility is now complete. Though testing remains.
+   - Pointers to different filterHandlers were created. Their destruction is
+     taken care of.
+   - The Requests array is also set.
+   - There were changes in the arrangement of code so every use occurs after
+     a declaration. The JNI methods were shifted below the handler classes.
+   - Filter calls were set. Though they are empty as of now.
+   - Beacon was included in all the filter classes.
+   - pointer logic in findBeacon and updateBeacon functions was improved.
+2. TODOs:
+   - Checking for possible memory leaks.
+   - Testing realtime app.
+   - Setup logging.
+   - Error and exception handling remain.
+
 ## Beacon.h first design ready
 1. Updates
    - Beacon class should now be completely functional. Though testing remains.

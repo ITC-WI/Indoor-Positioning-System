@@ -8,9 +8,19 @@
 
 class Rssi {
 public:
-    void rssi_kf(){
+    /**
+     * Go through the beacon chain and filter the values.
+     */
+    static void kf(){
 
     };
+
+    /**
+     * Go through the beacon chain and filter the values.
+     */
+    static void sma(){
+
+    }
 };
 
 

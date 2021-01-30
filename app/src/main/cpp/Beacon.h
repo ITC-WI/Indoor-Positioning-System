@@ -31,26 +31,26 @@ private:
      * @param minor
      * @return Beacon*
      */
-    static Beacon *&findBeacon(int maj, int min){
+    static Beacon *findBeacon(int maj, int min){
         if(start==nullptr){
             //This can never happen but use it for throwing an exception.
         }
 
         //reference to a pointer
-        Beacon *&iterator = start;
-        return findBeacon(iterator, maj, min);
+        Beacon *iterator = start;
+        return findBeacon(*iterator, maj, min);
     }
 
-    static Beacon *&findBeacon(Beacon *&iterator, int maj, int min){
+    static Beacon *findBeacon(Beacon &iterator, int maj, int min){
         //This iterator is just to see how many checks are we performing.
         int i=0;
 
         do{
-            if(((iterator->major) == maj)&& ((iterator-> minor) == min)){
-                return iterator;
+            if(((iterator.major) == maj)&& ((iterator.minor) == min)){
+                return &iterator;
             }
             else{
-                iterator = start->next_beacon;
+                iterator = *(start->next_beacon);
                 findBeacon(iterator, maj, min);
             }
         }while (i<6);//Iterate only 6 times at max. This should work as long as
@@ -139,8 +139,8 @@ public:
      * @return bool: To signify whether the objects were updated successfully.
      */
     static bool updateBeacon(int maj, int min, float r){
-        Beacon *&beacon=findBeacon(maj,min);
-        beacon->rssi=r;
+        Beacon *beacon = findBeacon(maj,min);
+        beacon->rssi =r;
     }
 
     /**
@@ -154,7 +154,7 @@ public:
      */
     static bool removeBeacon(int maj, int min){
         //reference to the pointer of Beacon object.
-        Beacon *&beacon = findBeacon(maj, min);
+        Beacon *beacon = findBeacon(maj, min);
 
         removeBeacon(beacon);
     }

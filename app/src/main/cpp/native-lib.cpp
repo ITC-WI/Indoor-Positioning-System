@@ -3,115 +3,15 @@
 #include <android/log.h>
 #include <stdio.h>
 #include "Beacon.h"
+#include "Rssi.h"
+#include "RssiToDistance.h"
+#include "Distance.h"
+#include "Multilateration.h"
 
 //A macro to print to the android info log.
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-lib::", __VA_ARGS__))
 
 extern FILE *file;
-
-/**
- * It is a test method only
- */
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_stringFromJNI(JNIEnv* env, jobject /* this */) {
-    std::string hello = "Powered by C++";
-    return env->NewStringUTF(hello.c_str());
-}
-
-/**
-* It is used for initialising all things on the filtering side.
-*/
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_initialise_1scan(JNIEnv *env, jobject thiz) {
-    // TODO: implement initialise_scan()
-    //Currently Im outputting in a text file. It would be changed to csv.
-    //Also the filename would contain the time and date it was created.
-    file = fopen("test.txt","w+");
-    if (file != NULL)
-    {
-        fputs("HELLO WORLD!\n", file);
-        fflush(file);
-        fclose(file);
-    }
-    else{
-        LOGI("No file created");
-    }
-    LOGI("scan initialised");
-
-}
-
-/**
- * This function is unused as of now.
- */
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_start_1filtering(JNIEnv *env, jobject thiz) {
-    // TODO: implement start_filtering()
-    LOGI("filtering started");
-}
-
-/**
- * This function is unused as of now.
- */
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_stop_1filtering(JNIEnv *env, jobject thiz) {
-    // TODO: implement stop_filtering()
-    LOGI("filtering stopped");
-
-    Beacon::removeAllBeacons();
-}
-
-/**
- * Called from the corresponding method in java whenever a beacon is discovered.
- * It just adds a beacon object to the linked list of beacons.
- */
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconDiscovered(JNIEnv *env, jobject thiz, jint major, jint minor, jfloat rssi) {
-
-    //It returns a bool value that is not utilised here
-    Beacon::addBeacon(major, minor, rssi);
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconsUpdated(JNIEnv *env, jobject thiz, jintArray jmajors, jintArray jminors, jfloatArray jrssis) {
-
-    //jintArray or jfloatArray are java types and have to copied into c++ types.
-
-    /**
-     * This is always equal to the number of objects in the Beacon list.
-     */
-    int no_of_updates = env ->GetArrayLength(jmajors);
-
-    //Initialise the c++ arrays.
-    int majors[no_of_updates];
-    int minors[no_of_updates];
-    float rssis[no_of_updates];
-
-
-    //Copy the java arrays into c++ arrays.
-    env-> GetIntArrayRegion(jmajors, 0, no_of_updates, majors);
-    env-> GetIntArrayRegion(jminors, 0, no_of_updates, minors);
-    env-> GetFloatArrayRegion(jrssis, 0, no_of_updates, rssis);
-
-    //for each element in the array, update the corresponding beacon object in the list.
-    for(int i=0; i<no_of_updates; i++){
-        //It returns a bool value that is not utilised here
-        Beacon::updateBeacon(majors[i],minors[i],rssis[i]);
-    }
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconLost(JNIEnv *env, jobject thiz, jint major, jint minor, jfloat rssi) {
-    //It returns a bool value that is not utilised here
-    Beacon::removeBeacon(major,minor);
-}
-
 
 
 /**
@@ -181,52 +81,189 @@ public:
 
     int handle_request(int request) override{
         if (request == RSSI_SMA){
-            //RSSI.method_name();
+            Rssi::sma();
             return 0;
         }
         else if(request == RSSI_KF){
-            //RSSI.method_name();
+            Rssi::kf();
             return 0;
         }
         else{
             return AbstractFilterHandler::handle_request(request);
         }
     }
-};
+} *rssiFilterHandler;
 
 class RssiToDistanceFilterHandler : public AbstractFilterHandler{
 public:
     int handle_request(int request) override{
         if (request == RSSI_TO_DISTANCE_PATH_LOSS){
-            //RSSI_TO_DISTANCE.method_name();
+            RssiToDistance::path_loss();
             return 0;
         }
         else{
             return AbstractFilterHandler::handle_request(request);
         }
     }
-};
+} *rssiToDistanceFilterHandler;
 
 class DistanceFilterHandler : public AbstractFilterHandler{
     int handle_request(int request) override{
         if (request == DISTANCE_KF){
-            //Distance.method_name();
+            Distance::kf();
             return 0;
         }
         else{
             return AbstractFilterHandler::handle_request(request);
         }
     }
-};
+} *distanceFilterHandler;
 
 class MultilaterationFilterHandler : public AbstractFilterHandler{
     int handle_request(int request) override{
         if (request == MULTILATERATE){
-            //Multilateration.method_name();
+            Multilateration::weighted_lsq();
             return 0;
         }
         else{
             return AbstractFilterHandler::handle_request(request);
         }
     }
-};
+} *multilaterationFilterHandler;
+
+static const int REQUESTS[] = {FilterHandler::RSSI_SMA, FilterHandler::RSSI_TO_DISTANCE_PATH_LOSS,
+                               FilterHandler::DISTANCE_KF, FilterHandler::MULTILATERATE};
+
+/**
+ * Pass the requests to the filterHandlers.
+ */
+void filter(){
+    for(int request:REQUESTS){
+        int result = rssiFilterHandler->handle_request(request);
+        if(result){
+            //LOG into file that request was not properly handled.
+        }
+    }
+}
+
+/**
+ * It is a test method only
+ */
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_indoor_1positioning_1system_MainActivity_stringFromJNI(JNIEnv* env, jobject /* this */) {
+    std::string hello = "Powered by C++";
+    return env->NewStringUTF(hello.c_str());
+}
+
+/**
+* It is used for initialising all things on the filtering side.
+*/
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_indoor_1positioning_1system_MainActivity_initialise_1scan(JNIEnv *env, jobject thiz) {
+    // TODO: implement initialise_scan()
+    //Currently Im outputting in a text file. It would be changed to csv.
+    //Also the filename would contain the time and date it was created.
+    file = fopen("test.txt","w+");
+    if (file != NULL)
+    {
+        fputs("HELLO WORLD!\n", file);
+        fflush(file);
+        fclose(file);
+    }
+    else{
+        LOGI("No file created");
+    }
+    LOGI("scan initialised");
+
+    //Initialise the handler pointers.
+    rssiFilterHandler = new RssiFilterHandler();
+    rssiToDistanceFilterHandler = new RssiToDistanceFilterHandler();
+    distanceFilterHandler = new DistanceFilterHandler();
+    multilaterationFilterHandler = new MultilaterationFilterHandler();
+
+    //Set the chain of handlers.
+    rssiFilterHandler ->SetNext(rssiToDistanceFilterHandler)->SetNext(distanceFilterHandler)->SetNext(multilaterationFilterHandler);
+}
+
+/**
+ * This function is unused as of now.
+ */
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_indoor_1positioning_1system_MainActivity_start_1filtering(JNIEnv *env, jobject thiz) {
+    // TODO: implement start_filtering()
+    LOGI("filtering started");
+}
+
+/**
+ * This function is unused as of now.
+ */
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_indoor_1positioning_1system_MainActivity_stop_1filtering(JNIEnv *env, jobject thiz) {
+    // TODO: implement stop_filtering()
+    LOGI("filtering stopped");
+
+    //delete all remaining beacon objects.
+    Beacon::removeAllBeacons();
+
+    //delete the filter handlers.
+    delete rssiFilterHandler;
+    delete rssiToDistanceFilterHandler;
+    delete distanceFilterHandler;
+    delete multilaterationFilterHandler;
+}
+
+/**
+ * Called from the corresponding method in java whenever a beacon is discovered.
+ * It just adds a beacon object to the linked list of beacons.
+ */
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconDiscovered(JNIEnv *env, jobject thiz, jint major, jint minor, jfloat rssi) {
+
+    //It returns a bool value that is not utilised here
+    Beacon::addBeacon(major, minor, rssi);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconsUpdated(JNIEnv *env, jobject thiz, jintArray jmajors, jintArray jminors, jfloatArray jrssis) {
+
+    //jintArray or jfloatArray are java types and have to copied into c++ types.
+
+    /**
+     * This is always equal to the number of objects in the Beacon list.
+     */
+    int no_of_updates = env ->GetArrayLength(jmajors);
+
+    //Initialise the c++ arrays.
+    int majors[no_of_updates];
+    int minors[no_of_updates];
+    float rssis[no_of_updates];
+
+
+    //Copy the java arrays into c++ arrays.
+    env-> GetIntArrayRegion(jmajors, 0, no_of_updates, majors);
+    env-> GetIntArrayRegion(jminors, 0, no_of_updates, minors);
+    env-> GetFloatArrayRegion(jrssis, 0, no_of_updates, rssis);
+
+    //for each element in the array, update the corresponding beacon object in the list.
+    for(int i=0; i<no_of_updates; i++){
+        //It returns a bool value that is not utilised here
+        Beacon::updateBeacon(majors[i],minors[i],rssis[i]);
+    }
+
+    //For now, whenever a  beacon is updated filter the rssis. Later this would run in an independent thread.
+    filter();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconLost(JNIEnv *env, jobject thiz, jint major, jint minor, jfloat rssi) {
+    //It returns a bool value that is not utilised here
+    Beacon::removeBeacon(major,minor);
+}
+
