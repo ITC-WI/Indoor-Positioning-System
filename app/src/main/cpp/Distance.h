@@ -1,0 +1,14 @@
+//
+// Created by Auro on 29-01-2021.
+//
+
+#ifndef INDOOR_POSITIONING_SYSTEM_DISTANCE_H
+#define INDOOR_POSITIONING_SYSTEM_DISTANCE_H
+
+
+class Distance {
+
+};
+
+
+#endif //INDOOR_POSITIONING_SYSTEM_DISTANCE_H

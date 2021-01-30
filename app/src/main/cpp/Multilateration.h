@@ -1,0 +1,15 @@
+//
+// Created by Auro on 29-01-2021.
+//
+
+#ifndef INDOOR_POSITIONING_SYSTEM_MULTILATERATION_H
+#define INDOOR_POSITIONING_SYSTEM_MULTILATERATION_H
+
+
+class Multilateration {
+public:
+
+};
+
+
+#endif //INDOOR_POSITIONING_SYSTEM_MULTILATERATION_H

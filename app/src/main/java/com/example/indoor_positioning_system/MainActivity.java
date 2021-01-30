@@ -24,6 +24,9 @@ import com.kontakt.sdk.android.common.KontaktSDK;
 import com.kontakt.sdk.android.common.profile.IBeaconDevice;
 import com.kontakt.sdk.android.common.profile.IBeaconRegion;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -44,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean permission_status;                   //To keep track of permission status
 
     private ProximityManager proximityManager;
+
+    public static final String FILE_NAME = "Example.txt";
+
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
@@ -77,11 +83,34 @@ public class MainActivity extends AppCompatActivity {
         scanButton = findViewById(R.id.scanButton);
         setupButtons();
 
+        //create a file to log the data into
+        create_file();
         //This would handle initialising the filters in native code.
         initialise_scan();
 
     }
 
+    public void create_file(){
+        FileOutputStream fos = null;
+        try {
+            fos = openFileOutput(FILE_NAME, MODE_PRIVATE);
+            fos.write('a');
+            Toast.makeText(this, "Saved to " + getFilesDir() + "/" + FILE_NAME,
+                    Toast.LENGTH_LONG).show();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
     /**
      * If scanning in progress then quit. Otherwise,
      * First check whether the required permissions have been granted.
@@ -189,13 +218,13 @@ public class MainActivity extends AppCompatActivity {
                 int i=0;
                 int[] majors = new int[iBeacons.size()];
                 int[] minors = new int[iBeacons.size()];
-                int[] rssis = new int[iBeacons.size()];
+                float[] rssis = new float[iBeacons.size()];
                 for (IBeaconDevice iBeacon :iBeacons) {
                     majors[i] = iBeacon.getMajor();
                     minors[i] = iBeacon.getMinor();
                     rssis[i] = iBeacon.getRssi();
                 }
-                IBeaconUpdated(majors, minors, rssis);
+                IBeaconsUpdated(majors, minors, rssis);
             }
 
             @Override
@@ -334,15 +363,15 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Called on new IBeacon discovery.
      */
-    public native void IBeaconDiscovered(int major, int minor, int rssi);
+    public native void IBeaconDiscovered(int major, int minor, float rssi);
 
     /**
      * Called on IBeacon update.
      */
-    public native void IBeaconUpdated(int[] majors, int[] minors, int[] rssis);
+    public native void IBeaconsUpdated(int[] majors, int[] minors, float[] rssis);
 
     /**
      * Called when an IBeacon is lost.
      */
-    public native void IBeaconLost(int major, int minor, int rssi);
+    public native void IBeaconLost(int major, int minor, float rssi);
 }
