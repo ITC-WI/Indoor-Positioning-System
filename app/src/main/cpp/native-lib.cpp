@@ -4,15 +4,15 @@
 #include <stdio.h>
 #include "Beacon.h"
 
+//A macro to print to the android info log.
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-lib::", __VA_ARGS__))
 
 extern FILE *file;
+
 /**
- * pointer to a constant.
+ * It is a test method only
  */
-const Beacon* start;
 extern "C"
-//The following is a test method only.
 JNIEXPORT jstring JNICALL
 Java_com_example_indoor_1positioning_1system_MainActivity_stringFromJNI(JNIEnv* env, jobject /* this */) {
     std::string hello = "Powered by C++";
@@ -20,13 +20,14 @@ Java_com_example_indoor_1positioning_1system_MainActivity_stringFromJNI(JNIEnv* 
 }
 
 /**
-*
+* It is used for initialising all things on the filtering side.
 */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_indoor_1positioning_1system_MainActivity_initialise_1scan(JNIEnv *env, jobject thiz) {
     // TODO: implement initialise_scan()
-    //Open the file
+    //Currently Im outputting in a text file. It would be changed to csv.
+    //Also the filename would contain the time and date it was created.
     file = fopen("test.txt","w+");
     if (file != NULL)
     {
@@ -39,10 +40,11 @@ Java_com_example_indoor_1positioning_1system_MainActivity_initialise_1scan(JNIEn
     }
     LOGI("scan initialised");
 
-    //Initialise the start pointer.
-    start = nullptr;
 }
 
+/**
+ * This function is unused as of now.
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_indoor_1positioning_1system_MainActivity_start_1filtering(JNIEnv *env, jobject thiz) {
@@ -50,34 +52,64 @@ Java_com_example_indoor_1positioning_1system_MainActivity_start_1filtering(JNIEn
     LOGI("filtering started");
 }
 
+/**
+ * This function is unused as of now.
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_indoor_1positioning_1system_MainActivity_stop_1filtering(JNIEnv *env, jobject thiz) {
     // TODO: implement stop_filtering()
     LOGI("filtering stopped");
+
+    Beacon::removeAllBeacons();
 }
 
-
+/**
+ * Called from the corresponding method in java whenever a beacon is discovered.
+ * It just adds a beacon object to the linked list of beacons.
+ */
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconDiscovered(JNIEnv *env, jobject thiz, jint major, jint minor, jfloat rssi) {
-    // TODO: implement IBeaconDiscovered()
-    if (start== nullptr){
-        start = Beacon::addBeacon(major,minor,rssi);
-    }
 
+    //It returns a bool value that is not utilised here
+    Beacon::addBeacon(major, minor, rssi);
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconsUpdated(JNIEnv *env, jobject thiz, jintArray majors, jintArray minors, jfloatArray rssis) {
-    // TODO: implement IBeaconUpdated()
+Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconsUpdated(JNIEnv *env, jobject thiz, jintArray jmajors, jintArray jminors, jfloatArray jrssis) {
+
+    //jintArray or jfloatArray are java types and have to copied into c++ types.
+
+    /**
+     * This is always equal to the number of objects in the Beacon list.
+     */
+    int no_of_updates = env ->GetArrayLength(jmajors);
+
+    //Initialise the c++ arrays.
+    int majors[no_of_updates];
+    int minors[no_of_updates];
+    float rssis[no_of_updates];
+
+
+    //Copy the java arrays into c++ arrays.
+    env-> GetIntArrayRegion(jmajors, 0, no_of_updates, majors);
+    env-> GetIntArrayRegion(jminors, 0, no_of_updates, minors);
+    env-> GetFloatArrayRegion(jrssis, 0, no_of_updates, rssis);
+
+    //for each element in the array, update the corresponding beacon object in the list.
+    for(int i=0; i<no_of_updates; i++){
+        //It returns a bool value that is not utilised here
+        Beacon::updateBeacon(majors[i],minors[i],rssis[i]);
+    }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconLost(JNIEnv *env, jobject thiz, jint major, jint minor, jfloat rssi) {
-    // TODO: implement IBeaconLost()
+    //It returns a bool value that is not utilised here
+    Beacon::removeBeacon(major,minor);
 }
 
 

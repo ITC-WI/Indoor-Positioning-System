@@ -3,6 +3,19 @@ Commit History
 For every push being made to the github repo in any branch the history
 should be updated accordingly. Newer commits should come to the top.
 
+## Beacon.h first design ready
+1. Updates
+   - Beacon class should now be completely functional. Though testing remains.
+   - Several functions to find, add, update and remove beacons were added.
+   - start pointer was made local to Beacon.h.
+   - Construction and Destruction of beacons is completely handled
+2. TODOs
+   - Rigorously check for possible memory leaks.
+   - Setup a logging environment.
+   - Filter calls are not set up yet.
+   - Chain of requests is yet to be set.
+   - Error and exception handling remain.
+
 ## Chain of Responsibility (unfinished)
 1. Updates
    - A chain of responsibility pattern is created using FilterHandler class.
