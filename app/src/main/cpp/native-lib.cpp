@@ -1,7 +1,10 @@
 #include <jni.h>
 #include <string>
 #include <android/log.h>
-#include <stdio.h>
+#include <cstdio>
+#include <fstream>
+#include <ctime>
+#include <iomanip>
 #include "Beacon.h"
 #include "Rssi.h"
 #include "RssiToDistance.h"
@@ -10,9 +13,9 @@
 
 //A macro to print to the android info log.
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-lib::", __VA_ARGS__))
+#define FILE(...) file<< "native-lib::"<<now_ms()<<" "<<__VA_ARGS__<<std::endl
 
-extern FILE *file;
-
+std::fstream file;
 
 /**
  * Basic Interface for building chain of interfaces. For more info look here:
@@ -61,6 +64,7 @@ public:
 
     FilterHandler *SetNext(FilterHandler *filterHandler) override {
         this -> next_handler = filterHandler;
+        return filterHandler;
     }
 
     /**
@@ -161,21 +165,27 @@ Java_com_example_indoor_1positioning_1system_MainActivity_stringFromJNI(JNIEnv* 
 */
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_initialise_1scan(JNIEnv *env, jobject thiz) {
+Java_com_example_indoor_1positioning_1system_MainActivity_initialise_1scan(JNIEnv *env, jobject thiz, jstring filePath) {
     // TODO: implement initialise_scan()
     //Currently Im outputting in a text file. It would be changed to csv.
     //Also the filename would contain the time and date it was created.
-    file = fopen("test.txt","w+");
-    if (file != NULL)
-    {
-        fputs("HELLO WORLD!\n", file);
-        fflush(file);
-        fclose(file);
+
+    LOGI("Initialise()");
+    LOGI("Now ms%lf",now_ms());
+    const char *path = env->GetStringUTFChars(filePath, nullptr);
+
+    file.open(path,std::ios::in|std::ios::out|std::ios::app);
+    file<< std::fixed;
+    file<< std::setprecision(2);
+    file<<"\n\n";
+    FILE("File opened");
+    LOGI("%s", path);
+    if(file.is_open()){
+        LOGI("File Opened");
     }
     else{
-        LOGI("No file created");
+        LOGI("File not opened");
     }
-    LOGI("scan initialised");
 
     //Initialise the handler pointers.
     rssiFilterHandler = new RssiFilterHandler();
@@ -214,6 +224,9 @@ Java_com_example_indoor_1positioning_1system_MainActivity_stop_1filtering(JNIEnv
     delete rssiToDistanceFilterHandler;
     delete distanceFilterHandler;
     delete multilaterationFilterHandler;
+    FILE("File closed");
+    file.flush();
+    file.close();
 }
 
 /**
@@ -226,6 +239,7 @@ Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconDiscovered(JNIE
 
     //It returns a bool value that is not utilised here
     Beacon::addBeacon(major, minor, rssi);
+    Beacon::printBeaconChain();
 }
 
 extern "C"
@@ -250,9 +264,12 @@ Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconsUpdated(JNIEnv
     env-> GetIntArrayRegion(jminors, 0, no_of_updates, minors);
     env-> GetFloatArrayRegion(jrssis, 0, no_of_updates, rssis);
 
+
     //for each element in the array, update the corresponding beacon object in the list.
     for(int i=0; i<no_of_updates; i++){
+        LOGI("Updating Beacon%d %d %d ",i, majors[i], minors[i]);
         //It returns a bool value that is not utilised here
+        if(majors[i])
         Beacon::updateBeacon(majors[i],minors[i],rssis[i]);
     }
 
@@ -265,5 +282,6 @@ JNIEXPORT void JNICALL
 Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconLost(JNIEnv *env, jobject thiz, jint major, jint minor, jfloat rssi) {
     //It returns a bool value that is not utilised here
     Beacon::removeBeacon(major,minor);
+    Beacon::printBeaconChain();
 }
 

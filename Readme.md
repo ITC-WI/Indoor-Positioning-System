@@ -3,6 +3,22 @@ Commit History
 For every push being made to the github repo in any branch the history
 should be updated accordingly. Newer commits should come to the top.
 
+## Filtering Framework Ready
+1. Updates:
+   - File logging is set and complete.
+   - If the file is not there a new file is created at
+     "/storage/emulated/0/Download/IPS_test.txt". No requirements from the user side.
+   - All memory leaks are taken care of. So the construction and destruction of
+     objects is now complete. Though there is a possibility that some of the pointers
+     may be initialised on heap and are therefore not cleared yet.
+   - Realtime app is running and logging is going on expected.
+
+2. TODOs:
+   - Error and exception handling remain. Though their utility seems very low now
+     as file logging seems to be completely functional.
+   - start_filtering() does not reopen open the file if it has been closed once by
+     stop_filtering(). This needs to be improved.
+
 ## Chain of responsibility first design ready
 1. Updates:
    - Chain of responsibility is now complete. Though testing remains.

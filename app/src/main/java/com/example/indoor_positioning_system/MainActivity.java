@@ -1,10 +1,19 @@
 package com.example.indoor_positioning_system;
 
 import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -27,6 +36,7 @@ import com.kontakt.sdk.android.common.profile.IBeaconRegion;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -43,6 +53,9 @@ public class MainActivity extends AppCompatActivity {
                                                         //changed without rationale.
 
     private static final int REQUEST_ENABLE_BT = 101;  //Similar to REQUEST_PERMISSIONS but for BLE.
+
+    // Request code for creating a text document.
+    private static final int CREATE_FILE = 1;
 
     public boolean permission_status;                   //To keep track of permission status
 
@@ -84,32 +97,22 @@ public class MainActivity extends AppCompatActivity {
         setupButtons();
 
         //create a file to log the data into
-        create_file();
-        //This would handle initialising the filters in native code.
-        initialise_scan();
+        //createFile(Uri.parse(Environment.DIRECTORY_DOWNLOADS));
+        initialise_scan("/storage/emulated/0/Download/IPS_test.txt");
 
     }
 
-    public void create_file(){
-        FileOutputStream fos = null;
-        try {
-            fos = openFileOutput(FILE_NAME, MODE_PRIVATE);
-            fos.write('a');
-            Toast.makeText(this, "Saved to " + getFilesDir() + "/" + FILE_NAME,
-                    Toast.LENGTH_LONG).show();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+    private void createFile(Uri pickerInitialUri) {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_TITLE, "test");
+
+        // Optionally, specify a URI for the directory that should be opened in
+        // the system file picker when your app creates the document.
+        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri);
+
+        startActivityForResult(intent, CREATE_FILE);
     }
     /**
      * If scanning in progress then quit. Otherwise,
@@ -197,8 +200,8 @@ public class MainActivity extends AppCompatActivity {
                 .scanPeriod(ScanPeriod.RANGING)
                 //Using BALANCED for best performance/battery ratio
                 .scanMode(ScanMode.BALANCED)
-                //OnDeviceUpdate callback will be received with 1 second interval
-                .deviceUpdateCallbackInterval(1000);
+                //OnDeviceUpdate callback will be received with 10 second interval
+                .deviceUpdateCallbackInterval(10000);
 
         //Setting up iBeacon listener
         proximityManager.setIBeaconListener(createIBeaconListener());
@@ -223,7 +226,9 @@ public class MainActivity extends AppCompatActivity {
                     majors[i] = iBeacon.getMajor();
                     minors[i] = iBeacon.getMinor();
                     rssis[i] = iBeacon.getRssi();
+                    i++;
                 }
+                Log.i("Devices Updated", Arrays.toString(majors));
                 IBeaconsUpdated(majors, minors, rssis);
             }
 
@@ -266,6 +271,20 @@ public class MainActivity extends AppCompatActivity {
 
             } else {   // RESULT_CANCELED
                 Log.i("INFO","Bluetooth request denied");
+            }
+        }
+        Uri uri = null;
+        if(requestCode==CREATE_FILE && resultCode== Activity.RESULT_OK){
+            if(result != null){
+                uri = result.getData();
+                Log.i("INFO",uri.toString());
+                Log.i("Decoded Path",uri.getPath());
+                //String path = getPath(getApplicationContext(),uri);
+                //Path hardcoded for now. Would be changed later.
+                //String path = "/storage/self/primary/Download/IPS/test0.txt";
+                //String path = "/storage/emulated/0/Download/IPS/invoice.txt";
+                //Log.i("getPath",path);
+                initialise_scan("/storage/emulated/0/Download/IPS/test.txt");
             }
         }
     }
@@ -348,7 +367,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * To initialise the filters and anything that needs to be run before actually starting filtering.
      */
-    public native void initialise_scan();
+    public native void initialise_scan(String path);
 
     /**
      * To repeatedly estimate position of the user. This would handle all the filtering calls.
@@ -374,4 +393,133 @@ public class MainActivity extends AppCompatActivity {
      * Called when an IBeacon is lost.
      */
     public native void IBeaconLost(int major, int minor, float rssi);
+
+    /**
+     * Get a file path from a Uri. This will get the the path for Storage Access
+     * Framework Documents, as well as the _data field for the MediaStore and
+     * other file-based ContentProviders.
+     *
+     * @param context The context.
+     * @param uri The Uri to query.
+     * @author paulburke
+     */
+    public static String getPath(final Context context, final Uri uri) {
+
+        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+
+        // DocumentProvider
+        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            // ExternalStorageProvider
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                if ("primary".equalsIgnoreCase(type)) {
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                }
+
+                // TODO handle non-primary volumes
+            }
+            // DownloadsProvider
+            else if (isDownloadsDocument(uri)) {
+
+                final String id = DocumentsContract.getDocumentId(uri);
+                final Uri contentUri = ContentUris.withAppendedId(
+                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+
+                return getDataColumn(context, contentUri, null, null);
+            }
+            // MediaProvider
+            else if (isMediaDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                Uri contentUri = null;
+                if ("image".equals(type)) {
+                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                } else if ("video".equals(type)) {
+                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                } else if ("audio".equals(type)) {
+                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                }
+
+                final String selection = "_id=?";
+                final String[] selectionArgs = new String[] {
+                        split[1]
+                };
+
+                return getDataColumn(context, contentUri, selection, selectionArgs);
+            }
+        }
+        // MediaStore (and general)
+        else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            return getDataColumn(context, uri, null, null);
+        }
+        // File
+        else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the value of the data column for this Uri. This is useful for
+     * MediaStore Uris, and other file-based ContentProviders.
+     *
+     * @param context The context.
+     * @param uri The Uri to query.
+     * @param selection (Optional) Filter used in the query.
+     * @param selectionArgs (Optional) Selection arguments used in the query.
+     * @return The value of the _data column, which is typically a file path.
+     */
+    public static String getDataColumn(Context context, Uri uri, String selection,
+                                       String[] selectionArgs) {
+
+        Cursor cursor = null;
+        final String column = "_data";
+        final String[] projection = {
+                column
+        };
+
+        try {
+            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
+                    null);
+            if (cursor != null && cursor.moveToFirst()) {
+                final int column_index = cursor.getColumnIndexOrThrow(column);
+                return cursor.getString(column_index);
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return null;
+    }
+
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is ExternalStorageProvider.
+     */
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is DownloadsProvider.
+     */
+    public static boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is MediaProvider.
+     */
+    public static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
+    }
 }

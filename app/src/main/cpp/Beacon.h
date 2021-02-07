@@ -1,26 +1,43 @@
 //
 // Created by Auro on 29-01-2021.
 //
-
+#include <fstream>
+#include <time.h>
 #ifndef INDOOR_POSITIONING_SYSTEM_BEACON_H
 #define INDOOR_POSITIONING_SYSTEM_BEACON_H
 
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "Beacon.h::", __VA_ARGS__))
+#define FILE(...) file<< "Beacon.h::"<<now_ms()<<" "<<__VA_ARGS__<<std::endl
+
+extern std::fstream file;
+
+/* Return current time in milliseconds */
+static double now_ms(void)
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec*1000. + tv.tv_usec/1000.;
+}
 
 class Beacon {
 private:
     Beacon(){
-        this->next_beacon = nullptr;
+        next_beacon = nullptr;
+        major = 0;
+        minor = 0;
+        rssi = 0;
+        LOGI("Next beacon is nullptr");
         //TODO: Set all data to 0. Just in case.
     }
 
     ~Beacon(){
     }
 
-    Beacon(int major, int minor, float rssi){
+    Beacon(int maj, int min, float r){
         Beacon();
-        this->minor = minor;
-        this->major = major;
-        this->rssi = rssi;
+        minor = min;
+        major = maj;
+        rssi = r;
     }
 
     /**
@@ -31,31 +48,39 @@ private:
      * @param minor
      * @return Beacon*
      */
-    static Beacon *findBeacon(int maj, int min){
+    static Beacon *&findBeacon(int maj, int min){
         if(start==nullptr){
             //This can never happen but use it for throwing an exception.
+            LOGI("start is null");
+            Beacon* beacon = nullptr;
+            return beacon;
         }
 
         //reference to a pointer
-        Beacon *iterator = start;
-        return findBeacon(*iterator, maj, min);
+        Beacon *&iterator = start;
+        return findBeacon(iterator, maj, min);
     }
 
-    static Beacon *findBeacon(Beacon &iterator, int maj, int min){
+    static Beacon *&findBeacon(Beacon *iterator, int maj, int min){
+        LOGI("Finding Beacon %d %d",maj,min);
         //This iterator is just to see how many checks are we performing.
         int i=0;
 
         do{
-            if(((iterator.major) == maj)&& ((iterator.minor) == min)){
-                return &iterator;
+            if(((iterator->major) == maj)&& ((iterator->minor) == min)){
+                return iterator;
             }
             else{
-                iterator = *(start->next_beacon);
+                //LOGI("i: %d",i);
+                i++;
+                iterator = iterator->next_beacon;
                 findBeacon(iterator, maj, min);
             }
         }while (i<6);//Iterate only 6 times at max. This should work as long as
         // user has <=6 beacons in range. This condition is for testing
         // only. It would be modified later.
+        Beacon *beacon = nullptr;
+        return beacon;
     }
 
 public:
@@ -98,7 +123,7 @@ public:
      * This beacon pointer maintains a linked list of beacons that are discovered but not
      * lost. Using this pointer we can provide faster access to beacon data.
      */
-    Beacon *next_beacon;
+    Beacon *next_beacon{nullptr};
 
     /**
      * Points to the start of the beacon list.
@@ -118,8 +143,10 @@ public:
      */
     static bool addBeacon(int maj, int min, float r){
 
+        LOGI("Adding Beacon");
         if(start == nullptr){
             start = new Beacon(maj, min, r);
+            LOGI("start initialised to %d",start);
         }
 
         else{
@@ -127,6 +154,11 @@ public:
             start = new Beacon(maj, min, r);
             start ->next_beacon = temp;
         }
+
+        FILE("Beacon added "<<maj<<" , "<<min);
+        LOGI("Beacon Added %d %d %f", maj,min,r);
+
+        return 0;
     }
 
     /**
@@ -139,8 +171,15 @@ public:
      * @return bool: To signify whether the objects were updated successfully.
      */
     static bool updateBeacon(int maj, int min, float r){
+        LOGI("Updating Beacon");
+        FILE("Updating Beacon "<<maj<<" , "<<min);
         Beacon *beacon = findBeacon(maj,min);
         beacon->rssi =r;
+        LOGI("Update %d %d %f", maj,min,r);
+        //fout("%time, RSSI Update: , maj, min, r");
+        FILE("New Beacon State:");
+        file<<"maj: "<<beacon->major<<" , min: "<<beacon->minor<<" , rssi: "<<beacon->rssi<<std::endl;
+        return 0;
     }
 
     /**
@@ -154,24 +193,28 @@ public:
      */
     static bool removeBeacon(int maj, int min){
         //reference to the pointer of Beacon object.
-        Beacon *beacon = findBeacon(maj, min);
+        Beacon *&beacon = findBeacon(maj, min);
 
         removeBeacon(beacon);
+        return 0;
     }
 
     static bool removeBeacon(Beacon *&beacon){
+        Beacon* beacon_ptr = beacon;
+        FILE("Removing Beacon "<<beacon->major<<" , "<<beacon->minor);
         if((beacon -> next_beacon) == nullptr){
             //Delete the object that is pointed to by the beacon*
             //and then set the beacon* to nullptr.
-            delete beacon;
+            delete beacon_ptr;
             beacon = nullptr;
         }
 
         else{
-            Beacon *temp = (beacon->next_beacon);
-            delete beacon;
+            Beacon* temp = (beacon->next_beacon);
+            delete beacon_ptr;
             beacon = temp;
         }
+        return 0;
     }
 
     /**
@@ -180,8 +223,23 @@ public:
      */
     static bool removeAllBeacons(){
         while(start!=nullptr){
+            printBeaconChain();
             removeBeacon(start);
         }
+        return 0;
+    }
+
+    static void printBeaconChain(){
+        FILE("Beacon Chain:");
+        Beacon *chain = start;
+        while(chain!= nullptr){
+            int maj = chain->major;
+            LOGI("%d ->",maj);
+            file<<maj<<" -> ";
+            chain = chain->next_beacon;
+        }
+        file<<"End of Chain"<<std::endl;
+        LOGI("End of chain");
     }
 };
 
