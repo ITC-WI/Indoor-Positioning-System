@@ -3,6 +3,27 @@ Commit History
 For every push being made to the github repo in any branch the history
 should be updated accordingly. Newer commits should come to the top.
 
+## RSSI_SMA completed and code cleaned
+1. Updates:
+   - rssi_sma() defined and is now functional.
+   - Code was refactored. The Chain of Responsibility Design pattern(including the classes
+     FilterHandler and all its children) was moved to FilterHandler.h file.
+   - All JNI interface functions were moved to native-lib.h file. And from there simple c++ function
+     were called. These functions are now defined in native-lib.cpp.
+   - Unnecessary warnings and TODOs were removed.
+   - A bug that caused the app to crash whenever a beacon was taken out of range was removed. The beacon
+     scanning framework apart from permissions is now completely functional.
+   - File now closes only when the activity is destroyed. So the user can run multiple start scanning
+     stop scanning cycles without relaunching the app.
+
+2. TODOs:
+   - Error and exception handling remain. Though their utility seems very low now
+     as file logging seems to be completely functional.
+   - For the app to run properly certain permissions and services need to be active. The app
+     does not take into account the case when Location services is not enabled. Also the Storage permission
+     needs to be given by the user manually in the settings.
+   - MainActivity still needs to be cleaned.
+
 ## Filtering Framework Ready
 1. Updates:
    - File logging is set and complete.
