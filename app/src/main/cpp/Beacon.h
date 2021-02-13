@@ -4,6 +4,7 @@
 #include <fstream>
 #include <time.h>
 #include <android/log.h>
+#include <queue>
 #ifndef INDOOR_POSITIONING_SYSTEM_BEACON_H
 #define INDOOR_POSITIONING_SYSTEM_BEACON_H
 
@@ -28,7 +29,6 @@ private:
         minor = 0;
         rssi = 0;
         rssi_sma = 0;
-        rssi_initial = 0;
         LOGI("Next beacon is nullptr");
         //TODO: Set all data to 0. Just in case.
     }
@@ -105,15 +105,11 @@ public:
      * The average rssi over sma_size.
      */
     float rssi_sma;
-    /**
-     * Values of rssi in the average stack currently. The total number of values to be in
-     * the stack would be defined in the method for simple moving average.
-     */
-    int sma_size;
-    /**
-     * The first value of rssi in current rssi_sma
-     */
-     float rssi_initial;
+
+     /**
+      * A queue that maintains a list of last n(SMA_SIZE: defined in rssi.h) rssi values
+      */
+     std::queue<int> rssi_queue;
     /**
      * The updated estimate of distance (it has already been projected to the ground when
      * rssi was converted to distance).

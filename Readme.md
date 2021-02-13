@@ -5,7 +5,7 @@ should be updated accordingly. Newer commits should come to the top.
 
 ## RSSI_SMA completed and code cleaned
 1. Updates:
-   - rssi_sma() defined and is now functional.
+   - rssi_sma() defined and is now functional. It is implemented via STL queue.
    - Code was refactored. The Chain of Responsibility Design pattern(including the classes
      FilterHandler and all its children) was moved to FilterHandler.h file.
    - All JNI interface functions were moved to native-lib.h file. And from there simple c++ function

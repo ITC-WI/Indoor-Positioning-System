@@ -5,6 +5,9 @@
 #ifndef INDOOR_POSITIONING_SYSTEM_RSSI_H
 #define INDOOR_POSITIONING_SYSTEM_RSSI_H
 
+#ifdef FILE
+#undef FILE
+#endif
 #define FILE(...) file<< "Rssi.h::"<<now_ms()<<" "<<__VA_ARGS__<<std::endl
 
 extern std::fstream file;
@@ -28,17 +31,16 @@ public:
         FILE("sma() call");
         while (current!= nullptr){
 
-            if((current->sma_size)<SMA_SIZE){
-                if(current->rssi_initial==0){
-                    current->rssi_initial = current->rssi;
-                }
-                current->rssi_sma = (current -> rssi_sma)*(current->sma_size)+(current->rssi);
-                (current ->sma_size)++;
-                current ->rssi_sma /= current -> sma_size;
+            if((current->rssi_queue.size())<SMA_SIZE){
+                current->rssi_sma = (current -> rssi_sma)*(current->rssi_queue.size())+(current->rssi);
+                current ->rssi_queue.push(current->rssi);
+                current ->rssi_sma /= (current -> rssi_queue.size());
             }
 
             else{
-                current->rssi_sma = ((current -> rssi_sma)*(current->sma_size)+(current->rssi)-(current->rssi_initial))/SMA_SIZE;
+                current->rssi_sma = ((current -> rssi_sma)*(SMA_SIZE)+(current->rssi)-(current->rssi_queue.front()))/SMA_SIZE;
+                current->rssi_queue.pop();
+                current->rssi_queue.push(current->rssi);
             }
 
             FILE("Beacon{"<<current->major<<","<<current->minor<<"} sma: "<<current->rssi_sma);
