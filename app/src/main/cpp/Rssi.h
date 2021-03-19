@@ -8,7 +8,7 @@
 #ifdef FILE
 #undef FILE
 #endif
-#define FILE(...) file<< "Rssi.h::"<<now_ms()<<" "<<__VA_ARGS__<<std::endl
+#define FILE(...) file<< "Rssi.h :: "<<now_ms()<<" "<<__VA_ARGS__<<std::endl
 
 extern std::fstream file;
 class Rssi {
@@ -28,7 +28,7 @@ public:
      */
     static void sma(){
         Beacon *current = Beacon::start;
-        FILE("sma() call");
+        FILE("SMA_Call");
         while (current!= nullptr){
 
             if((current->rssi_queue.size())<SMA_SIZE){
@@ -43,7 +43,7 @@ public:
                 current->rssi_queue.push(current->rssi);
             }
 
-            FILE("Beacon{"<<current->major<<","<<current->minor<<"} sma: "<<current->rssi_sma);
+            FILE("Beacon_SMA "<<current->major<<" "<<current->minor<<" "<<current->rssi_sma);
             current = current ->next_beacon;
         }
     }

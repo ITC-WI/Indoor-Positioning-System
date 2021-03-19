@@ -3,6 +3,14 @@ Commit History
 For every push being made to the github repo in any branch the history
 should be updated accordingly. Newer commits should come to the top.
 
+## Data analysis framework updated
+1. Updates:
+   - The new algorithm for file logging is now as follows:
+   <filename> :: <current_time_in_ms> <command_executed> <specifics(optional) ...>
+   
+2. TODOs:
+   -Same as before.
+
 ## RSSI_SMA completed and code cleaned
 1. Updates:
    - rssi_sma() defined and is now functional. It is implemented via STL queue.

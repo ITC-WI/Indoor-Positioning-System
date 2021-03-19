@@ -16,7 +16,7 @@
 #ifdef FILE
 #undef FILE
 #endif
-#define FILE(...) file<< "native-lib::"<<now_ms()<<" "<<__VA_ARGS__<<std::endl
+#define FILE(...) file<< "native-lib :: "<<now_ms()<<" "<<__VA_ARGS__<<std::endl
 
 const char *path = nullptr;
 

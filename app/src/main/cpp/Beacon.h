@@ -9,7 +9,7 @@
 #define INDOOR_POSITIONING_SYSTEM_BEACON_H
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "Beacon.h::", __VA_ARGS__))
-#define FILE(...) file<< "Beacon.h::"<<now_ms()<<" "<<__VA_ARGS__<<std::endl
+#define FILE(...) file<< "Beacon.h :: "<<now_ms()<<" "<<__VA_ARGS__<<std::endl
 
 extern std::fstream file;
 
@@ -150,7 +150,7 @@ public:
             start ->next_beacon = temp;
         }
 
-        FILE("Beacon added "<<maj<<" , "<<min);
+        FILE("Beacon_Added "<<maj<<" "<<min);
         LOGI("Beacon Added %d %d %f", maj,min,r);
 
         return 0;
@@ -166,15 +166,13 @@ public:
      * @return bool: To signify whether the objects were updated successfully.
      */
     static bool updateBeacon(int maj, int min, float r){
-        LOGI("Updating Beacon");
-        FILE("Updating Beacon "<<maj<<" , "<<min);
+        LOGI("Updating Beacon %d %d %f", maj,min,r);
+        FILE("Updating_Beacon "<<maj<<" "<<min);
 
         Beacon *beacon = findBeacon(maj,min);
         beacon->rssi =r;
 
-        LOGI("Update %d %d %f", maj,min,r);
-        FILE("New Beacon State:");
-        file<<"maj: "<<beacon->major<<" , min: "<<beacon->minor<<" , rssi: "<<beacon->rssi<<std::endl;
+        FILE("New_Beacon_State "<< beacon->major<<" "<<beacon->minor<<" "<<beacon->rssi);
         return 0;
     }
 
@@ -195,7 +193,7 @@ public:
 
     static bool removeBeacon(Beacon **beacon){
 
-        FILE("Removing Beacon "<<(*beacon)->major<<" , "<<(*beacon)->minor);
+        FILE("Removing_Beacon "<<(*beacon)->major<<" "<<(*beacon)->minor);
         if(((*beacon) -> next_beacon) == nullptr){
             //Delete the object that is pointed to by the beacon*
             //and then set the beacon* to nullptr.
@@ -224,7 +222,7 @@ public:
     }
 
     static void printBeaconChain(){
-        FILE("Beacon Chain:");
+        file << "Beacon.h :: " << now_ms() << " " << "Beacon_Chain ";
         Beacon *chain = start;
         while(chain!= nullptr){
             int maj = chain->major;
@@ -233,7 +231,7 @@ public:
             chain = chain->next_beacon;
         }
         file<<"End of Chain"<<std::endl;
-        LOGI("End of chain");
+        LOGI("End_of_chain");
     }
 };
 

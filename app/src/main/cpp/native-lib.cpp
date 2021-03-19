@@ -18,14 +18,7 @@ void initialise_scan() {
     file<< std::fixed;
     file<< std::setprecision(2);
     file<<"\n\n";
-    FILE("File opened");
-    LOGI("%s", path);
-    if(file.is_open()){
-        LOGI("File Opened");
-    }
-    else{
-        LOGI("File not opened");
-    }
+    FILE("File_Opened");
 
     //Initialise the handler pointers.
     rssiFilterHandler = new RssiFilterHandler();
@@ -43,7 +36,7 @@ void initialise_scan() {
 void start_filtering() {
 
     LOGI("filtering started");
-    FILE("Scanning Started");
+    FILE("Scanning_Started");
 }
 
 /**
@@ -52,11 +45,11 @@ void start_filtering() {
 void stop_filtering() {
 
     LOGI("filtering stopped");
-    FILE("Stopping Scan");
+    FILE("Stopping_Scan");
 
     //delete all remaining beacon objects.
     Beacon::removeAllBeacons();
-    FILE("Scanning Stopped");
+    FILE("Scanning_Stopped");
     file.flush();
 }
 
@@ -73,7 +66,7 @@ void exit() {
     delete distanceFilterHandler;
     delete multilaterationFilterHandler;
 
-    FILE("File closed");
+    FILE("File_Closed");
     file.flush();
     file.close();
 }
