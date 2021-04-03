@@ -7,7 +7,7 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/cpptextview"
+        android:id="@+id/cpp_text_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -17,19 +17,45 @@
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:textSize="40sp"
-        android:textAlignment="center"/>
+        android:textAlignment="center"
+        android:text="@string/cpp_text_view"/>
+
+    <CheckBox
+        android:id="@+id/trilateration_check_box"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/trilateration_check_box"
+        app:layout_constraintTop_toBottomOf="@id/cpp_text_view"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textSize="24sp"
+        android:layout_marginTop="32dp"
+        android:layout_marginStart="64dp"/>
+
+    <CheckBox
+        android:id="@+id/dead_reckoning_check_box"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/dead_reckoning_check_box"
+        app:layout_constraintTop_toBottomOf="@id/trilateration_check_box"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:textSize="24sp"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="64dp"/>
+
 
     <Button
-        android:id="@+id/scanButton"
+        android:id="@+id/scan_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/cpptextview"
+        app:layout_constraintTop_toBottomOf="@id/dead_reckoning_check_box"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         android:layout_marginTop="16dp"
         android:textAlignment="center"
         android:text="@string/start_scanning"
         android:textSize="32sp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp" />
+        android:layout_marginLeft="32dp"
+        android:layout_marginRight="32dp" />
 
     <ProgressBar
         android:id="@+id/progress_circular"
@@ -39,5 +65,16 @@
         android:visibility="gone"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/scanButton" />
+        app:layout_constraintTop_toBottomOf="@id/scan_button" />
+
+    <TextView
+        android:id="@+id/error_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="32dp"
+        android:visibility="gone"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

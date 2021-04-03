@@ -1,19 +1,10 @@
 package com.example.indoor_positioning_system;
 
 import android.Manifest;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.content.ContentUris;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -33,37 +24,64 @@ import com.kontakt.sdk.android.common.KontaktSDK;
 import com.kontakt.sdk.android.common.profile.IBeaconDevice;
 import com.kontakt.sdk.android.common.profile.IBeaconRegion;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    /**
+     * A text field that displays powered by C++ on the main Activity.
+     */
     TextView cppv;
+
+    /**
+     * Used to Start and Stop the positioning algorithm.
+     */
     Button scanButton;
+
+    /**
+     * A Loading icon. Active when positioning is in progress so that
+     * the user knows that positioning is going on.
+     */
     ProgressBar progressBar;
-    boolean buttonState; //0 means no scanning in progress. 1 means scanning in progress.
-    private static final String API_KEY = "zWsIXUklUXaQZfxVnQsraHqWllLvPETs";//grp0 API key
 
-    private static final int REQUEST_PERMISSIONS = 100; //This is in context with the request code
-                                                        //asked during onRequestPermissionResult().
-                                                        //Choice of 100 is arbitrary but should not be
-                                                        //changed without rationale.
+    /**
+     * To keep track whether positioning is active or not. 1 means active and 0 means not.
+     */
+    boolean isPositioningActive;
 
-    private static final int REQUEST_ENABLE_BT = 101;  //Similar to REQUEST_PERMISSIONS but for BLE.
+    /**
+     * kontact.io panel grp0 API key. Used to initialise the SDK.
+     * Also this app is so tailored such that only the beacons registered at the kontact.io panel
+     * with this particular key are scanned.
+     */
+    private static final String API_KEY = "zWsIXUklUXaQZfxVnQsraHqWllLvPETs";
 
-    // Request code for creating a text document.
-    private static final int CREATE_FILE = 1;
+    /**
+     * Bluetooth enable request code. Used in onActivityResult() callback. The value 100 is
+     * arbitrary but should not be changed without rationale.
+     */
+    private static final int REQUEST_ENABLE_BT = 100;
 
-    public boolean permission_status;                   //To keep track of permission status
+    /**
+     * Code for Location and Storage permission request callback. Used with onRequestPermissionResult().
+     * The value 101 is arbitrary but should not be changed without some rationale.
+     */
+    private static final int REQUEST_PERMISSIONS = 101;
 
+
+    /**
+     * This is a handle for managing the beacons via kontact.io SDK.
+     */
     private ProximityManager proximityManager;
 
-    public static final String FILE_NAME = "Example.txt";
+    /**
+     * Log file. Created and Stored in "Downloads/". If the file is already present then it is appended.
+     */
+    public static final String FILE_NAME = "IPS_test.txt";
 
-    // Used to load the 'native-lib' library on application startup.
+    // Used to load the 'native-lib' library on application startup. All other C++ libraries are
+    // imported via native-lib.
     static {
         System.loadLibrary("native-lib");
     }
@@ -77,43 +95,25 @@ public class MainActivity extends AppCompatActivity {
         KontaktSDK.initialize(API_KEY);
 
         //Initially, no scanning in progress
-        buttonState = false;
+        isPositioningActive = false;
 
-        //Assume, no permissions were granted every time the app is started:
-        permission_status = false;
 
-        //Initialise the ProgressBar:
+        //Initialise the ProgressBar aka loading icon view.
         progressBar = findViewById(R.id.progress_circular);
 
-        // Example of a call to a native method
-        cppv = findViewById(R.id.cpptextview);
-        cppv.setText(stringFromJNI());
+        //Ask for permissions.
+        checkPermissions();
 
         //Initialise and configure the proximity Manager
         setupProximityManager();
 
         //Setup the scan button
-        scanButton = findViewById(R.id.scanButton);
+        scanButton = findViewById(R.id.scan_button);
         setupButtons();
 
-        //create a file to log the data into
-        //createFile(Uri.parse(Environment.DIRECTORY_DOWNLOADS));
         initialise_scan("/storage/emulated/0/Download/IPS_test.txt");
-
     }
 
-    private void createFile(Uri pickerInitialUri) {
-        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("text/plain");
-        intent.putExtra(Intent.EXTRA_TITLE, "test");
-
-        // Optionally, specify a URI for the directory that should be opened in
-        // the system file picker when your app creates the document.
-        intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri);
-
-        startActivityForResult(intent, CREATE_FILE);
-    }
     /**
      * If scanning in progress then quit. Otherwise,
      * First check whether the required permissions have been granted.
@@ -122,13 +122,8 @@ public class MainActivity extends AppCompatActivity {
     public void setupButtons(){
         //Lambda is used here because the listener is anonymous
         scanButton.setOnClickListener(v -> {
-            if(!buttonState){
-                if(!permission_status){
-                    checkPermissions();
-                }
-                else{
-                    start_scanning();
-                }
+            if(!isPositioningActive){
+                    checkServices();
             }
             else{
                 //stop the scanning thread and set buttonState to false.
@@ -136,6 +131,37 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    public void checkServices(){
+        if(BluetoothAdapter.getDefaultAdapter().isEnabled()){
+            start_scanning();
+        }
+        else{
+            enableBluetooth();
+        }
+    }
+
+    public void enableBluetooth(){
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if(!bluetoothAdapter.isEnabled()){
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+    }
+
+    //The following method is required for testing only as of now.
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent result) {
+        super.onActivityResult(requestCode, resultCode, result);
+        if (requestCode == REQUEST_ENABLE_BT) {  // Match the request code
+            if (resultCode == RESULT_OK) {
+                start_scanning();
+            } else {   // RESULT_CANCELED
+                disableButton("Please turn on ");
+            }
+        }
+    }
+
 
     /**
      * Called at each button press to check whether the required services(Location and BLE)
@@ -153,39 +179,40 @@ public class MainActivity extends AppCompatActivity {
         //Check for FINE_LOCATION Permission.
         int checkSelfPermissionResult = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
         if(PackageManager.PERMISSION_GRANTED==checkSelfPermissionResult){
-            permission_status =true;
             //For testing only:
-            Log.i("INFO","Permission already granted");
-
-            start_scanning();
+            Log.i("INFO","FINE_LOCATION Permission already granted");
         }
         else{
             //For testing only:
             Log.i("INFO","Requesting for permissions");
             //The following will result in a callback to onRequestPermissionResult(). The results can be
             //handled there.
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_PERMISSIONS);
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.WRITE_EXTERNAL_STORAGE},REQUEST_PERMISSIONS);
         }
-
-        //Now check whether location is enabled.
 
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
+
+
+        if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED && grantResults[1]==PackageManager.PERMISSION_GRANTED){
             if(requestCode==REQUEST_PERMISSIONS){
                 //For testing purposes only:
-                Log.i("INFO","Permissions Granted");
-                permission_status = true;
-                start_scanning();
+                Log.i("INFO","LOCATION Permission Granted");
             }
         }
 
         else{
-            //TODO: User can be shown more rationale here.
             Toast.makeText(this, "Critical Permission Denied",Toast.LENGTH_LONG).show();
+            disableButton("The button has been disabled. Please allow Location and Storage Permission");
         }
+    }
+
+    private void disableButton(String s) {
+        scanButton.setEnabled(false);
+        TextView error_text_view = findViewById(R.id.error_text_view);
+        error_text_view.setText(s);
     }
 
     /**
@@ -240,54 +267,6 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
-    /**
-     *
-     */
-    public boolean bluetoothEnabled(){
-        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if(bluetoothAdapter.isEnabled()){
-            return true;
-        }
-        else{
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            //!Possible alternative: If startActivityForResult() is not completed by the time we check for BLE again.
-            //The application would almost never reach here.
-            if(bluetoothAdapter.isEnabled()){
-                return true;
-            }
-            else{
-                return false;
-            }
-        }
-    }
-
-    //The following method is required for testing only as of now.
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent result) {
-        super.onActivityResult(requestCode, resultCode, result);
-        if (requestCode == REQUEST_ENABLE_BT) {  // Match the request code
-            if (resultCode == RESULT_OK) {
-
-            } else {   // RESULT_CANCELED
-                Log.i("INFO","Bluetooth request denied");
-            }
-        }
-        Uri uri = null;
-        if(requestCode==CREATE_FILE && resultCode== Activity.RESULT_OK){
-            if(result != null){
-                uri = result.getData();
-                Log.i("INFO",uri.toString());
-                Log.i("Decoded Path",uri.getPath());
-                //String path = getPath(getApplicationContext(),uri);
-                //Path hardcoded for now. Would be changed later.
-                //String path = "/storage/self/primary/Download/IPS/test0.txt";
-                //String path = "/storage/emulated/0/Download/IPS/invoice.txt";
-                //Log.i("getPath",path);
-                initialise_scan("/storage/emulated/0/Download/IPS/test.txt");
-            }
-        }
-    }
 
     /**
      * Start scanning the Beacons.
@@ -295,18 +274,11 @@ public class MainActivity extends AppCompatActivity {
     public void start_scanning(){
         //TODO: Implement scanning in a new thread. stop_scanning() would change accordingly.
 
-        //check if Bluetooth is on.
-        if(!bluetoothEnabled()){
-            //User hasn't enabled bluetooth even after asking.
-            Toast.makeText(MainActivity.this,"Unable to scan for beacons",Toast.LENGTH_LONG).show();
-            return;
-        }
-
         scanButton.setText(R.string.stop_scanning);
         //For testing only:
         Log.i("INFO","Starting Scanning");
 
-        buttonState = true;
+        isPositioningActive = true;
         //Connect to scanning service and start scanning when ready.
         //Anonymous listener.
         proximityManager.connect(() -> {
@@ -344,12 +316,12 @@ public class MainActivity extends AppCompatActivity {
         }
         proximityManager.disconnect();
 
-        buttonState = false;
+        isPositioningActive = false;
     }
 
     @Override
     protected void onStop() {
-        if(buttonState) stop_scanning();
+        if(isPositioningActive) stop_scanning();
         super.onStop();
     }
 
@@ -359,11 +331,6 @@ public class MainActivity extends AppCompatActivity {
         exit();
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    public native String stringFromJNI();
 
     /**
      * To initialise the filters and anything that needs to be run before actually starting filtering.

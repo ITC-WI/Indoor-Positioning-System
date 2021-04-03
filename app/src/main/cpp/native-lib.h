@@ -27,15 +27,6 @@ void exit();
 void IBeaconDiscovered(int, int, float);
 void IBeaconUpdated(int[], int[], float[], int);
 void IBeaconLost(int, int);
-/**
- * It is a test method only
- */
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_stringFromJNI(JNIEnv* env, jobject /* this */) {
-    std::string hello = "Powered by C++";
-    return env->NewStringUTF(hello.c_str());
-}
 
 /**
 * It is used for initialising all things on the filtering side.
