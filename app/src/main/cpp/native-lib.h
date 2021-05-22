@@ -33,7 +33,7 @@ void IBeaconLost(int, int);
 */
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_initialise_1scan(JNIEnv *env,__unused jobject thiz, jstring filePath) {
+Java_com_example_indoor_1positioning_1system_TrilaterationActivity_initialise_1scan(JNIEnv *env, __unused jobject thiz, jstring filePath) {
     path = env->GetStringUTFChars(filePath, nullptr);
     initialise_scan();
 }
@@ -43,7 +43,7 @@ Java_com_example_indoor_1positioning_1system_MainActivity_initialise_1scan(JNIEn
  */
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_start_1filtering(__unused JNIEnv *env,__unused jobject thiz) {
+Java_com_example_indoor_1positioning_1system_TrilaterationActivity_start_1filtering(__unused JNIEnv *env, __unused jobject thiz) {
     start_filtering();
 }
 
@@ -52,7 +52,7 @@ Java_com_example_indoor_1positioning_1system_MainActivity_start_1filtering(__unu
  */
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_stop_1filtering(__unused JNIEnv *env,__unused jobject thiz) {
+Java_com_example_indoor_1positioning_1system_TrilaterationActivity_stop_1filtering(__unused JNIEnv *env, __unused jobject thiz) {
     stop_filtering();
 }
 
@@ -61,7 +61,7 @@ Java_com_example_indoor_1positioning_1system_MainActivity_stop_1filtering(__unus
  */
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_exit(__unused JNIEnv *env,__unused jobject thiz) {
+Java_com_example_indoor_1positioning_1system_TrilaterationActivity_exit(__unused JNIEnv *env, __unused jobject thiz) {
     exit();
 }
 
@@ -71,7 +71,7 @@ Java_com_example_indoor_1positioning_1system_MainActivity_exit(__unused JNIEnv *
  */
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconDiscovered(__unused JNIEnv *env,__unused jobject thiz, jint major, jint minor, jfloat rssi){
+Java_com_example_indoor_1positioning_1system_TrilaterationActivity_IBeaconDiscovered(__unused JNIEnv *env, __unused jobject thiz, jint major, jint minor, jfloat rssi){
     IBeaconDiscovered(major, minor, rssi);
 }
 
@@ -81,7 +81,7 @@ Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconDiscovered(__un
  */
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconsUpdated(JNIEnv *env,__unused jobject thiz, jintArray jmajors, jintArray jminors, jfloatArray jrssis) {
+Java_com_example_indoor_1positioning_1system_TrilaterationActivity_IBeaconsUpdated(JNIEnv *env, __unused jobject thiz, jintArray jmajors, jintArray jminors, jfloatArray jrssis) {
 
     //jintArray or jfloatArray are java types and have to copied into c++ types.
 
@@ -109,7 +109,7 @@ Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconsUpdated(JNIEnv
  */
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_indoor_1positioning_1system_MainActivity_IBeaconLost(__unused JNIEnv *env,__unused jobject thiz, jint major, jint minor) {
+Java_com_example_indoor_1positioning_1system_TrilaterationActivity_IBeaconLost(__unused JNIEnv *env, __unused jobject thiz, jint major, jint minor) {
     IBeaconLost(major, minor);
 }
 #endif //INDOOR_POSITIONING_SYSTEM_NATIVE_LIB_H

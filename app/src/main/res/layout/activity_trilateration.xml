@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".TrilaterationActivity">
+
+    <TextView
+        android:id="@+id/trilateration_textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="48dp"
+        android:textSize="48sp"
+        android:textAlignment="center"
+        android:text="@string/trilateration"/>
+
+    <TextView
+        android:id="@+id/trilateration_textView_params"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/current_params"
+        app:layout_constraintTop_toBottomOf="@id/trilateration_textView"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="32dp"
+        android:textSize="32sp"
+        android:textColor="@color/black"/>
+
+    <ListView
+        android:id="@+id/trilateration_listView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/trilateration_textView_params"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        android:paddingHorizontal="32dp"/>
+
+    <Button
+        android:id="@+id/trilateration_button_scan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:text="@string/start_scanning"
+        android:textAlignment="center"
+        android:textSize="32sp"
+        app:layout_constraintTop_toBottomOf="@id/trilateration_listView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

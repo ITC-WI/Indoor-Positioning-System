@@ -2,7 +2,10 @@
     <string name="app_name">Indoor_Positioning_System</string>
     <string name="start_scanning">Start Scanning</string>
     <string name="stop_scanning">Stop Scanning</string>
-    <string name="cpp_text_view">Powered by C++</string>
-    <string name="trilateration_check_box">Trilateration</string>
-    <string name="dead_reckoning_check_box">Dead Reckoning</string>
+    <string name="trilateration_checkBox">Trilateration</string>
+    <string name="deadReckoning_checkBox">Dead Reckoning</string>
+    <string name="powered_by">Powered By C++</string>
+    <string name="start">START</string>
+    <string name="trilateration">Trilateration</string>
+    <string name="current_params">Current Parameters</string>
 </resources>

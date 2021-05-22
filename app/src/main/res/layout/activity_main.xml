@@ -7,74 +7,50 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/cpp_text_view"
-        android:layout_width="match_parent"
+        android:id="@+id/main_textView"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+        android:text="@string/powered_by"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="16dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:textSize="40sp"
-        android:textAlignment="center"
-        android:text="@string/cpp_text_view"/>
+        android:layout_marginTop="48dp"
+        android:textSize="48sp"/>
 
     <CheckBox
-        android:id="@+id/trilateration_check_box"
+        android:id="@+id/main_checkBox_trilateration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/trilateration_check_box"
-        app:layout_constraintTop_toBottomOf="@id/cpp_text_view"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:textSize="24sp"
         android:layout_marginTop="32dp"
-        android:layout_marginStart="64dp"/>
-
-    <CheckBox
-        android:id="@+id/dead_reckoning_check_box"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/dead_reckoning_check_box"
-        app:layout_constraintTop_toBottomOf="@id/trilateration_check_box"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:textSize="24sp"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="64dp"/>
-
-
-    <Button
-        android:id="@+id/scan_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/dead_reckoning_check_box"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="16dp"
-        android:textAlignment="center"
-        android:text="@string/start_scanning"
+        android:text="@string/trilateration_checkBox"
         android:textSize="32sp"
         android:layout_marginLeft="32dp"
-        android:layout_marginRight="32dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toBottomOf="@id/main_textView"
+        />
 
-    <ProgressBar
-        android:id="@+id/progress_circular"
+    <CheckBox
+        android:id="@+id/main_checkBox_deadReckoning"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:visibility="gone"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/scan_button" />
+        android:layout_marginTop="32dp"
+        android:text="@string/deadReckoning_checkBox"
+        android:textSize="32sp"
+        android:layout_marginLeft="32dp"
+        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toBottomOf="@id/main_checkBox_trilateration"
+        />
 
-    <TextView
-        android:id="@+id/error_text_view"
+    <Button
+        android:id="@+id/main_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="32dp"
-        android:visibility="gone"/>
+        android:layout_marginTop="32dp"
+        android:text="@string/start"
+        android:textSize="32sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/main_checkBox_deadReckoning" />
 </androidx.constraintlayout.widget.ConstraintLayout>
